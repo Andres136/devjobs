@@ -1,0 +1,1 @@
+<span class="text-2xl font-bold text-gray-800 dark:text-white">{{ config('app.name', 'DevJobs') }}</span>
