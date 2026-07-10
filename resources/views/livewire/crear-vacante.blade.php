@@ -115,9 +115,9 @@
         />
 
         <div class="my-5">
-            @if ($imagen)
+            @if ($imagenPreview)
                 Imagen:
-                <img src="{{ $imagen->temporaryUrl() }}">
+                <img src="{{ $imagenPreview }}">
             @endif
         </div>
 
