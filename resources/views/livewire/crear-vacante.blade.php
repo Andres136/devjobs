@@ -103,36 +103,27 @@
         @enderror
     </div>
 
-    <div x-data="{ fileName: 'Ningún archivo seleccionado' }">
+    <div>
         <x-input-label for="imagen" :value="__('Imagen')" />
 
-        <input
+        <x-text-input
             id="imagen"
-            class="sr-only"
+            class="block mt-1 w-full"
             type="file"
-            wire:model.live="imagen"
+            wire:model="imagen"
             accept="image/*"
-            x-ref="imagen"
-            x-on:change="fileName = $refs.imagen.files.length ? $refs.imagen.files[0].name : 'Ningún archivo seleccionado'"
         />
-          @error('imagen')
+
+        <div class="my-5">
+            @if ($imagen)
+                Imagen:
+                <img src="{{ $imagen->temporaryUrl() }}">
+            @endif
+        </div>
+
+        @error('imagen')
             <livewire:mostrar-alerta :message="$message" />
         @enderror
-
-        <div class="mt-1 flex overflow-hidden rounded-md shadow-sm">
-            <button
-                type="button"
-                class="shrink-0 rounded-l-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
-                x-on:click="$refs.imagen.click()"
-            >
-                Seleccionar archivo
-            </button>
-
-            <span
-                class="block w-full rounded-r-md border border-l-0 border-gray-300 px-3 py-2 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
-                x-text="fileName"
-            ></span>
-        </div>
     </div>
 
     <x-primary-button>
