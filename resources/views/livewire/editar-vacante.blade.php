@@ -1,4 +1,4 @@
-<form class="mx-auto w-full max-w-md text-left space-y-5" wire:submit.prevent='crearVacante'>
+<form class="mx-auto w-full max-w-md text-left space-y-5" wire:submit.prevent='editarVacante'>
     <div>
         <x-input-label for="titulo" :value="__('Titulo Vacante')" />
         <x-text-input
@@ -113,6 +113,15 @@
             wire:model="imagen"
             accept="image/*"
         />
+
+        <div class="my-5 w-80">
+             <x-input-label  :value="__('Imagen Actual')" />
+             @if ($imagen)
+                 <img src="{{ asset('storage/vacantes/'. $imagen) }}" alt="{{  'Imagen Vacante ' . $titulo }}" class="w-full rounded" />
+             @else
+                 <p class="text-sm text-gray-500">No hay imagen disponible.</p>
+             @endif
+        </div>
 
         {{-- <div class="my-5 w-80">
             @if ($imagenPreview)
