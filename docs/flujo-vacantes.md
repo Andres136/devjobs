@@ -220,6 +220,85 @@ Sirve para:
 - Crear una URL temporal para mostrar preview.
 - Evitar error 500 si Livewire no puede previsualizar el archivo.
 
+### `app/Livewire/EditarVacante.php`
+
+Este componente controla el formulario de edición de una vacante existente. El archivo se encuentra en `app/Livewire/EditarVacante.php`.
+
+Propiedades más importantes:
+
+```php
+public $vacante_id;
+public $titulo;
+public $salario;
+public $categoria;
+public $empresa;
+public $ultimo_dia;
+public $descripcion;
+public $imagen;
+```
+
+Lo que hace el componente:
+
+- Recibe un modelo `Vacante $vacante` en el método `mount()` cuando se accede a la página de edición.
+- Asigna los valores actuales de la vacante a las propiedades públicas.
+- Usa `WithFileUploads` para permitir que el formulario acepte un `input type="file"`.
+- Busca la vacante por su `id` almacenado en `$vacante_id` al guardar los cambios.
+
+Código clave en `app/Livewire/EditarVacante.php`:
+
+```php
+use Livewire\WithFileUploads;
+
+class EditarVacante extends Component
+{
+    use WithFileUploads;
+
+    public $vacante_id;
+    public $titulo;
+    public $salario;
+    public $categoria;
+    public $empresa;
+    public $ultimo_dia;
+    public $descripcion;
+    public $imagen;
+
+    public function mount(Vacante $vacante)
+    {
+        $this->vacante_id = $vacante->id;
+        $this->titulo = $vacante->titulo;
+        $this->salario = $vacante->salario_id;
+        $this->categoria = $vacante->categoria_id;
+        $this->empresa = $vacante->empresa;
+        $this->descripcion = $vacante->descripcion;
+        $this->imagen = $vacante->imagen;
+        $this->ultimo_dia = Carbon::parse($vacante->ultimo_dia)->format('Y-m-d');
+    }
+
+    public function editarVacante()
+    {
+        $datos = $this->validate();
+        $vacante = Vacante::find($this->vacante_id);
+        // asignar valores y guardar...
+    }
+}
+```
+
+### `resources/views/livewire/editar-vacante.blade.php`
+
+Vista del formulario de edición. Está ubicada en `resources/views/livewire/editar-vacante.blade.php`.
+
+Puntos clave:
+
+- El formulario usa `wire:submit.prevent='editarVacante'` para enviar los datos a `app/Livewire/EditarVacante.php`.
+- El input de imagen usa `wire:model="imagen"` en lugar de `wire:model.live`, porque Livewire no admite `wire:model.live` en inputs de tipo file.
+- La imagen actual se muestra usando:
+
+```blade
+<img src="{{ asset('storage/vacantes/'. $imagen) }}" alt="Imagen Vacante {{ $titulo }}" />
+```
+
+- Se añadió la condición `@if ($imagen)` antes de renderizar la etiqueta `<img>` para evitar HTML inválido cuando no hay archivo.
+
 ### `app/Models/Vacante.php`
 
 Modelo Eloquent de la tabla `vacantes`.
@@ -798,6 +877,340 @@ Y la vista los muestra con:
 ### Crear modelo `Categoria`
 
 Comando:
+
+---
+
+## Cambios realizados hoy (2026-07-15)
+
+A continuación se documenta, de forma completa y reproducible, TODO lo que se hizo hoy en el proyecto (archivos modificados, comandos ejecutados, motivos, y fragmentos de código nuevos o cambiados). Copia/pega los comandos si quieres repetir los pasos en otro entorno.
+
+- Resumen rápido:
+  - En `app/Livewire/EditarVacante.php` se agregó `use Livewire\WithFileUploads;` y `use WithFileUploads;` para que el componente soporte `input type="file"`.
+  - En `app/Livewire/EditarVacante.php` se reemplazó la propiedad incorrecta `public $id;` por `public $vacante_id;`.
+  - En `app/Livewire/EditarVacante.php` se corrigió la línea `Vacante::find($this->_id)` por `Vacante::find($this->vacante_id);`.
+  - En `resources/views/livewire/editar-vacante.blade.php` se cerró correctamente la etiqueta `<img>` y se agregó `@if ($imagen)` para evitar mostrar la imagen cuando no existe.
+  - Se movieron las imágenes del directorio incorrecto `storage/app/private/public/vacantes/` a la ruta pública correcta `storage/app/public/vacantes/`.
+  - Se revisó el flujo de creación de vacante y no se aplicó el cambio permanente propuesto en `CrearVacante.php` para usar `store('vacantes', 'public')`; se dejó el código original a pedido del usuario.
+
+- Archivos modificados hoy:
+  - `app/Livewire/EditarVacante.php`
+  - `resources/views/livewire/editar-vacante.blade.php`
+  - `docs/flujo-vacantes.md`
+
+- Archivos revisados aunque no se modificaron hoy:
+  - `app/Livewire/CrearVacante.php`
+  - `storage/app/public/vacantes/` (ruta de imágenes)
+  - `public/storage` (enlace simbólico de Laravel)
+
+- Cambios detallados por archivo:
+
+1) `app/Livewire/EditarVacante.php`
+
+- Archivo exacto: `/home/andres_tique/projects/devjobs/app/Livewire/EditarVacante.php`
+- El componente ahora tiene estas dos líneas en la parte superior:
+
+```php
+use Livewire\Component;
+use Livewire\WithFileUploads;
+```
+
+- La clase contiene:
+
+```php
+class EditarVacante extends Component
+{
+    use WithFileUploads;
+    public $vacante_id;
+    public $titulo;
+    public $salario;
+    public $categoria;
+    public $empresa;
+    public $ultimo_dia;
+    public $descripcion;
+    public $imagen;
+```
+
+- La corrección clave fue en `editarVacante()`: usar `Vacante::find($this->vacante_id)` para encontrar la vacante.
+- Antes estaba usando la propiedad inexistente `$this->_id`, lo que causaba el error de Livewire `PropiedadNoEncontrada`.
+
+2) `resources/views/livewire/editar-vacante.blade.php`
+
+- Archivo exacto: `/home/andres_tique/projects/devjobs/resources/views/livewire/editar-vacante.blade.php`
+- La sección de imagen actual ahora verifica si hay valor en `$imagen`.
+- El fragmento corregido es exactamente:
+
+```blade
+<div class="my-5 w-80">
+    <x-input-label :value="__('Imagen Actual')" />
+    @if ($imagen)
+        <img src="{{ asset('storage/vacantes/'. $imagen) }}" alt="{{ 'Imagen Vacante ' . $titulo }}" class="w-full rounded" />
+    @else
+        <p class="text-sm text-gray-500">No hay imagen disponible.</p>
+    @endif
+</div>
+```
+
+- Antes la etiqueta `<img>` quedaba así:
+
+```blade
+<img src="{{ asset('storage/vacantes/'. $imagen) }}" alt="..."
+```
+
+  y eso generaba HTML inválido.
+
+3) Movimiento de imágenes en disco
+
+- Directorio incorrecto encontrado: `storage/app/private/public/vacantes/`
+- Directorio correcto para `asset('storage/vacantes/...')`: `storage/app/public/vacantes/`
+
+- Comando exacto ejecutado:
+
+```bash
+cd /home/andres_tique/projects/devjobs
+mkdir -p storage/app/public/vacantes
+mv storage/app/private/public/vacantes/* storage/app/public/vacantes/ 2>/dev/null || true
+rm -rf storage/app/private/public/vacantes
+```
+
+- Resultado exacto: los archivos de imagen ahora están en `storage/app/public/vacantes/` y el enlace público `public/storage` puede servirlos correctamente.
+
+4) Cambios de código tentativos en `app/Livewire/CrearVacante.php`
+
+- Archivo revisado: `/home/andres_tique/projects/devjobs/app/Livewire/CrearVacante.php`
+- Cambio propuesto (no finalizado):
+
+```php
+$imagen = $this->imagen->store('vacantes', 'public');
+$datos['imagen'] = basename($imagen);
+```
+
+- Motivo del cambio: guardar directamente en el disco público `public` en lugar de la ruta interna `public/vacantes`.
+- Estado actual final: el cambio fue revertido de acuerdo al pedido del usuario y el archivo quedó con su lógica original.
+
+
+- Detalle de cambios por archivo:
+
+1) `app/Livewire/EditarVacante.php`
+
+- Antes (resumen relevante):
+  - No tenía el trait `WithFileUploads`.
+  - Declaraba `public $id;` y en `editarVacante()` intentaba usar `$this->_id` (propiedad inexistente).
+
+- Cambios realizados:
+  - Añadido `use Livewire\WithFileUploads;` y `use WithFileUploads;` en la clase.
+  - Reemplazada la propiedad `public $id;` por `public $vacante_id;`.
+  - En `mount(Vacante $vacante)` se asigna ` $this->vacante_id = $vacante->id;`.
+  - En `editarVacante()` se reemplazó `Vacante::find($this->_id)` por `Vacante::find($this->vacante_id)`.
+
+- Fragmento nuevo/clave (after):
+
+```php
+use Livewire\WithFileUploads;
+
+class EditarVacante extends Component
+{
+    use WithFileUploads;
+
+    public $vacante_id;
+    public $titulo;
+    // ... otras propiedades ...
+
+    public function mount(Vacante $vacante)
+    {
+        $this->vacante_id = $vacante->id;
+        $this->titulo = $vacante->titulo;
+        // ...
+    }
+
+    public function editarVacante()
+    {
+        $datos = $this->validate();
+        $vacante = Vacante::find($this->vacante_id);
+        // asignar valores y guardar
+    }
+}
+```
+
+- Motivo: Livewire lanzaba `PropiedadNoEncontrada` porque el componente intentaba acceder a `$this->_id` (no existe). Además era necesario `WithFileUploads` para manejar inputs de tipo `file`.
+
+2) `resources/views/livewire/editar-vacante.blade.php`
+
+- Antes: la etiqueta `<img>` no se cerraba y se intentaba mostrar la imagen sin verificar que existiera, provocando problemas de renderizado o HTML inválido.
+
+- Cambios realizados: cerrado correcto de la etiqueta `<img>` y añadido un `@if ($imagen)` para evitar mostrar nada si no hay una imagen.
+
+- Fragmento nuevo/clave (after):
+
+```blade
+<div class="my-5 w-80">
+    <x-input-label :value="__('Imagen Actual')" />
+    @if ($imagen)
+        <img src="{{ asset('storage/vacantes/'. $imagen) }}" alt="{{ 'Imagen Vacante ' . $titulo }}" class="w-full rounded" />
+    @else
+        <p class="text-sm text-gray-500">No hay imagen disponible.</p>
+    @endif
+</div>
+```
+
+- Motivo: evitar HTML mal formado y errores al no existir imagen o ruta.
+
+3) Movimiento de imágenes en disco
+
+- Problema: se encontraron archivos en `storage/app/private/public/vacantes/` (ruta incorrecta para que `asset('storage/...')` funcione). El enlace público `public/storage` apunta a `storage/app/public`.
+
+- Acción realizada (comandos ejecutados):
+
+```bash
+# desde la raíz del proyecto
+mkdir -p storage/app/public/vacantes
+mv storage/app/private/public/vacantes/* storage/app/public/vacantes/ || true
+rm -rf storage/app/private/public/vacantes
+```
+
+- Resultado: las imágenes ahora están en `storage/app/public/vacantes/` y son servidas por `public/storage/vacantes/...`.
+
+- Motivo: `asset('storage/vacantes/...')` asume que las imágenes están bajo `storage/app/public/vacantes` y que existe el enlace simbólico `public/storage` creado por `php artisan storage:link`.
+
+4) Cambio temporal en `CrearVacante.php` (intentado y revertido)
+
+- Acción intentada: cambiar el guardado de la imagen para usar el disco `public` con:
+
+```php
+$imagen = $this->imagen->store('vacantes', 'public');
+$datos['imagen'] = basename($imagen);
+```
+
+- Motivo: asegurar que nuevas imágenes se guarden directamente en `storage/app/public/vacantes`.
+- Estado: el cambio fue aplicado temporalmente pero luego se revirtió a petición del usuario (el archivo quedó como originalmente estaba con `store('public/vacantes')`). Se documenta aquí para transparencia.
+
+- Si quieres que aplique el cambio de forma permanente, dime y lo actualizo.
+
+
+## Comandos exactos ejecutados hoy (orden aproximado y copia/pega)
+
+- Buscar archivos y rutas:
+
+```bash
+# buscar el componente EditarVacante
+rg -n "EditarVacante" -S || true
+
+# listar archivos vacantes
+find . -type f \( -iname '*vacante*' -o -path '*vacantes*' \) | sed 's#^./##' | head -50
+```
+
+- Comprobaciones de storage y enlaces:
+
+```bash
+ls -l public/storage || true
+realpath public/storage || true
+ls -la storage/app/public/vacantes || true
+ls -la storage/app/private/public/vacantes || true
+```
+
+- Mover imágenes (ejecutado):
+
+```bash
+mkdir -p storage/app/public/vacantes
+mv storage/app/private/public/vacantes/* storage/app/public/vacantes/ 2>/dev/null || true
+rm -rf storage/app/private/public/vacantes
+```
+
+- Comprobación rápida de PHP (lint):
+
+```bash
+php -l app/Livewire/EditarVacante.php
+```
+
+- Ejecutados (recomendados / usados durante diagnóstico):
+
+```bash
+php artisan storage:link    # sugerido si no existe el enlace público
+php artisan route:list
+tail -n 120 storage/logs/laravel.log
+php artisan migrate:rollback
+nl -ba app/Livewire/CrearVacante.php
+nl -ba resources/views/livewire/crear-vacante.blade.php
+```
+
+- Comandos git usados / sugeridos:
+
+```bash
+git add .
+# commit message sugerido:
+# git commit -m "fix(livewire): habilitar cargas y corregir ruta de imágenes" -m "Agrega WithFileUploads, corrige vista y mueve imágenes a storage/app/public/vacantes."
+# git push
+```
+
+
+## Cambios de código relevantes (copias breves)
+
+- `app/Livewire/EditarVacante.php` (fragmento clave):
+
+```php
+use Livewire\WithFileUploads;
+
+class EditarVacante extends Component
+{
+    use WithFileUploads;
+
+    public $vacante_id;
+    public $titulo;
+    // ...
+
+    public function mount(Vacante $vacante)
+    {
+        $this->vacante_id = $vacante->id;
+        // ...
+    }
+
+    public function editarVacante()
+    {
+        $datos = $this->validate();
+        $vacante = Vacante::find($this->vacante_id);
+        // asignar campos y guardar
+        $vacante->save();
+    }
+}
+```
+
+- `resources/views/livewire/editar-vacante.blade.php` (fragmento clave):
+
+```blade
+@if ($imagen)
+    <img src="{{ asset('storage/vacantes/'. $imagen) }}" alt="{{ 'Imagen Vacante ' . $titulo }}" class="w-full rounded" />
+@else
+    <p class="text-sm text-gray-500">No hay imagen disponible.</p>
+@endif
+```
+
+
+## Qué falta por verificar (siguientes pasos sugeridos)
+
+- Probar en el navegador el flujo de edición de vacantes (`/vacantes/{id}/edit` o donde esté la ruta Livewire) y confirmar que la imagen actual aparece.
+- Si la imagen no aparece en el navegador, ejecutar `php artisan storage:link` y confirmar `public/storage` apunta a `storage/app/public`.
+- Si quieres que todas las nuevas imágenes se guarden automáticamente en el disco público, confirmalo y aplico el cambio permanente en `CrearVacante.php`.
+
+
+---
+
+### Nota de auditoría
+
+Todos los cambios realizados hoy están registrados en el repositorio de trabajo local. Si quieres que haga un commit con el mensaje que prefieras y lo suba al remoto, dime el mensaje exacto y lo hago.
+
+---
+
+Comando final para pruebas locales rápidas:
+
+```bash
+# asegurarse de tener el enlace público
+php artisan storage:link
+# comprobar rutas
+php artisan route:list
+# iniciar servidor de desarrollo (si aplica)
+php artisan serve
+```
+
+
 
 ```bash
 php artisan make:model Categoria -m

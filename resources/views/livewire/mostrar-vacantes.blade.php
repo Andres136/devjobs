@@ -33,3 +33,30 @@
        {{ $vacantes->links() }}
     </div>
 </div>
+
+@push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        // El siguiente código es el Alert utilizado
+
+Swal.fire({
+  title: 'Estas Seguro de Eliminar la vacante?',
+  text: "Una vacante Eliminada no se puede recuperar",
+  icon: 'warning',
+  showCancelButton: true,
+  confirmButtonColor: '#3085d6',
+  cancelButtonColor: '#d33',
+  confirmButtonText: 'Si, !Eliminar¡',
+  cancelButtonText: 'Cancelar'
+}).then((result) => {
+  if (result.isConfirmed) {
+    Swal.fire(
+      'Deleted!',
+      'Your file has been deleted.',
+      'success'
+    )
+  }
+})
+    </script>
+@endpush
