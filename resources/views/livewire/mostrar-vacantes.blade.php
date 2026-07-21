@@ -19,9 +19,10 @@
                     class="bg-blue-800 py-2 px-4 rounded-lg text-white text-xs font-bold
                     uppercase text-center">Editar</a>
 
-                    <a href="#"
+                    <button 
+                    wire:click="prueba({{ $vacante->id }})"
                     class="bg-red-600 py-2 px-4 rounded-lg text-white text-xs font-bold
-                    uppercase text-center">Eliminar</a>
+                    uppercase text-center">Eliminar</button>
                 </div>
         </div>
         @empty
@@ -38,25 +39,27 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        // El siguiente código es el Alert utilizado
+        wire.on('prueba', () => {
+            alert('Desde el codigo de JS')
+        })
 
-Swal.fire({
-  title: 'Estas Seguro de Eliminar la vacante?',
-  text: "Una vacante Eliminada no se puede recuperar",
-  icon: 'warning',
-  showCancelButton: true,
-  confirmButtonColor: '#3085d6',
-  cancelButtonColor: '#d33',
-  confirmButtonText: 'Si, !Eliminar¡',
-  cancelButtonText: 'Cancelar'
-}).then((result) => {
-  if (result.isConfirmed) {
-    Swal.fire(
-      'Deleted!',
-      'Your file has been deleted.',
-      'success'
-    )
-  }
-})
+//Swal.fire({
+ // title: 'Estas Seguro de Eliminar la vacante?',
+ // text: "Una vacante Eliminada no se puede recuperar",
+ // icon: 'warning',
+ // showCancelButton: true,
+ // confirmButtonColor: '#3085d6',
+ // cancelButtonColor: '#d33',
+ // confirmButtonText: 'Si, !Eliminar¡',
+ // cancelButtonText: 'Cancelar'
+//}).then((result) => {
+ // if (result.isConfirmed) {
+   // Swal.fire(
+   //   'Deleted!',
+   //   'Your file has been deleted.',
+   //   'success'
+   // )
+ // }
+//}) 
     </script>
 @endpush
