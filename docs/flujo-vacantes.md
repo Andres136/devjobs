@@ -1592,6 +1592,379 @@ nl -ba resources/views/livewire/crear-vacante.blade.php
 nl -ba routes/web.php
 ```
 
+## Eliminacion de vacantes con SweetAlert y Livewire 4
+
+Esta seccion documenta el error encontrado al intentar eliminar una vacante desde el listado, su causa y la correccion aplicada.
+
+### Error observado
+
+Al hacer clic en el boton `Eliminar`, Laravel mostraba un error 500:
+
+```text
+Livewire\Exceptions\MethodNotFoundException
+
+Unable to call component method.
+Public method [mostrarAlerta] not found on component.
+```
+
+La peticion que fallaba era:
+
+```text
+POST /livewire-09212867/update
+```
+
+El endpoint `/livewire-.../update` no era la causa. Es la ruta interna que usa Livewire para enviar al servidor las acciones como `wire:click`. La causa real era que la vista solicitaba un metodo PHP que no existia.
+
+### Archivos corregidos
+
+```text
+app/Livewire/MostrarVacantes.php
+resources/views/livewire/mostrar-vacantes.blade.php
+tests/Feature/MostrarVacantesTest.php
+```
+
+Los numeros de linea que aparecen a continuacion corresponden al estado del codigo al momento de escribir esta seccion. Si se agregan o eliminan lineas, los numeros pueden cambiar.
+
+### 1. El boton llama al metodo PHP
+
+Archivo:
+
+```text
+resources/views/livewire/mostrar-vacantes.blade.php
+```
+
+Lineas 22 a 26:
+
+```blade
+<button
+    type="button"
+    wire:click="mostrarAlerta({{ $vacante->id }})"
+    class="bg-red-600 py-2 px-4 rounded-lg text-white text-xs font-bold
+    uppercase text-center">Eliminar</button>
+```
+
+La instruccion importante esta en la linea 24:
+
+```blade
+wire:click="mostrarAlerta({{ $vacante->id }})"
+```
+
+Esto significa:
+
+1. El usuario pulsa `Eliminar`.
+2. Livewire toma el identificador de la vacante.
+3. Livewire busca un metodo publico llamado `mostrarAlerta()` en el componente PHP.
+4. El identificador se entrega al parametro `$vacanteId`.
+
+El nombre escrito en `wire:click` debe coincidir exactamente con el nombre del metodo PHP. Por ejemplo, `mostrarrAlerta` con una `r` adicional seria un metodo diferente y produciria otro `MethodNotFoundException`.
+
+### 2. Se agrego el metodo que faltaba
+
+Archivo:
+
+```text
+app/Livewire/MostrarVacantes.php
+```
+
+Lineas 12 a 15:
+
+```php
+public function mostrarAlerta(int $vacanteId): void
+{
+    $this->dispatch('mostrarAlerta', vacanteId: $vacanteId);
+}
+```
+
+Explicacion:
+
+- `public` permite que Livewire ejecute el metodo desde `wire:click`.
+- `int $vacanteId` recibe el identificador enviado por el boton.
+- `dispatch()` crea un evento de Livewire.
+- El evento se llama `mostrarAlerta`.
+- El dato enviado a JavaScript se llama `vacanteId`.
+
+El error 500 se soluciono al hacer coincidir estas dos partes:
+
+```text
+Blade                                      PHP
+wire:click="mostrarAlerta(...)"   ->       public function mostrarAlerta(...)
+```
+
+### 3. JavaScript recibe el evento y muestra la confirmacion
+
+Archivo:
+
+```text
+resources/views/livewire/mostrar-vacantes.blade.php
+```
+
+La libreria SweetAlert2 se carga en la linea 40:
+
+```blade
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+```
+
+El listener comienza en las lineas 43 y 44:
+
+```javascript
+document.addEventListener('livewire:init', () => {
+    Livewire.on('mostrarAlerta', ({ vacanteId }) => {
+```
+
+En Livewire 4, `Livewire.on()` entrega directamente los datos del evento. Por eso se usa:
+
+```javascript
+({ vacanteId })
+```
+
+No se debe usar en este proyecto:
+
+```javascript
+event.detail.vacanteId
+```
+
+La alerta de confirmacion se encuentra entre las lineas 45 y 54:
+
+```javascript
+Swal.fire({
+    title: '¿Estás seguro de eliminar la vacante?',
+    text: 'Una vacante eliminada no se puede recuperar.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+})
+```
+
+SweetAlert devuelve el resultado de la decision del usuario. La linea 55 comprueba si confirmo:
+
+```javascript
+if (result.isConfirmed) {
+```
+
+### 4. Se envia la orden de eliminacion
+
+Lineas 57 a 59 de la vista:
+
+```javascript
+Livewire.dispatch('eliminarVacante', {
+    vacanteId
+})
+```
+
+Este proyecto usa Livewire 4. La sintaxis correcta es:
+
+```javascript
+Livewire.dispatch(...)
+```
+
+La sintaxis siguiente pertenece a versiones anteriores y no debe usarse aqui:
+
+```javascript
+Livewire.emit(...)
+```
+
+El nombre `eliminarVacante` coincide con el listener registrado en la linea 10 del componente:
+
+```php
+protected $listeners = ['eliminarVacante'];
+```
+
+### 5. PHP busca y elimina la vacante
+
+Archivo:
+
+```text
+app/Livewire/MostrarVacantes.php
+```
+
+Lineas 17 a 25:
+
+```php
+public function eliminarVacante(int $vacanteId): void
+{
+    $vacante = Vacante::where('user_id', auth()->id())
+        ->findOrFail($vacanteId);
+
+    $vacante->delete();
+
+    $this->dispatch('vacanteEliminada');
+}
+```
+
+Explicacion por linea:
+
+- Linea 17: declara el metodo y recibe el mismo `vacanteId` enviado por JavaScript.
+- Linea 19: limita la consulta a las vacantes del usuario autenticado.
+- Linea 20: busca la vacante por su identificador o produce un error 404 si no existe.
+- Linea 22: elimina la vacante de la base de datos.
+- Linea 24: informa al navegador que la eliminacion termino correctamente.
+
+La condicion siguiente es una proteccion de seguridad:
+
+```php
+where('user_id', auth()->id())
+```
+
+Sin ella, un usuario podria intentar enviar manualmente el identificador de una vacante perteneciente a otra persona.
+
+### 6. Se muestra la alerta de exito
+
+Lineas 64 a 71 de la vista:
+
+```javascript
+Livewire.on('vacanteEliminada', () => {
+    Swal.fire({
+        title: 'Se eliminó la Vacante',
+        text: 'Eliminado Correctamente',
+        icon: 'success',
+        confirmButtonText: 'OK'
+    })
+})
+```
+
+Esta alerta solo aparece despues de que PHP elimina correctamente la vacante y envia el evento `vacanteEliminada`.
+
+### Flujo completo de eliminacion
+
+```text
+Usuario pulsa Eliminar
+        |
+        v
+wire:click llama mostrarAlerta(vacanteId)
+        |
+        v
+PHP envia el evento mostrarAlerta
+        |
+        v
+JavaScript abre SweetAlert de confirmacion
+        |
+        +---- Cancelar ----> No ocurre ningun cambio
+        |
+        v
+Usuario confirma
+        |
+        v
+Livewire.dispatch envia eliminarVacante
+        |
+        v
+PHP valida propietario y elimina de la base de datos
+        |
+        v
+PHP envia vacanteEliminada
+        |
+        v
+SweetAlert muestra el mensaje de exito
+```
+
+### Errores corregidos en este flujo
+
+#### Metodo publico inexistente
+
+Problema:
+
+```blade
+wire:click="mostrarAlerta(...)"
+```
+
+pero no existia:
+
+```php
+public function mostrarAlerta(...)
+```
+
+Solucion: agregar el metodo publico con el mismo nombre.
+
+#### Uso de sintaxis antigua de Livewire
+
+Problema:
+
+```javascript
+Livewire.emit('eliminarVacante', ...)
+```
+
+Solucion para Livewire 4:
+
+```javascript
+Livewire.dispatch('eliminarVacante', ...)
+```
+
+#### Parametros con nombres o tipos diferentes
+
+Problema: JavaScript enviaba `vacanteId`, pero PHP esperaba `Vacante $vacante`.
+
+Solucion: ambos lados usan el mismo nombre y PHP recibe un entero:
+
+```javascript
+{ vacanteId }
+```
+
+```php
+public function eliminarVacante(int $vacanteId): void
+```
+
+#### No aparecia la alerta verde
+
+Problema: despues de borrar no se enviaba un evento de finalizacion.
+
+Solucion:
+
+```php
+$this->dispatch('vacanteEliminada');
+```
+
+JavaScript escucha ese evento y abre la alerta con `icon: 'success'`.
+
+### Verificaciones realizadas
+
+Se limpio la cache de Laravel:
+
+```bash
+php artisan optimize:clear
+```
+
+Se comprobo que las vistas Blade compilaran:
+
+```bash
+php artisan view:cache
+```
+
+Se ejecutaron las pruebas especificas:
+
+```bash
+php artisan test tests/Feature/MostrarVacantesTest.php
+```
+
+Resultado:
+
+```text
+2 pruebas aprobadas
+3 aserciones aprobadas
+```
+
+Las pruebas cubren:
+
+- El envio del evento de confirmacion `mostrarAlerta`.
+- La eliminacion de una vacante perteneciente al usuario autenticado.
+- El envio del evento final `vacanteEliminada`.
+
+### Como consultar nuevamente los numeros de linea
+
+Si el codigo cambia, ejecutar:
+
+```bash
+nl -ba app/Livewire/MostrarVacantes.php
+nl -ba resources/views/livewire/mostrar-vacantes.blade.php
+```
+
+### Commit sugerido para esta correccion
+
+```bash
+fix: corregir eliminacion de vacantes con SweetAlert y Livewire 4
+```
+
 ## Commits sugeridos
 
 Para los cambios de migracion:
