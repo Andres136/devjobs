@@ -5,10 +5,12 @@
         </h2>
     </x-slot>
 
-    <div class="min-h-[calc(100vh-145px)] bg-gray-900 px-3 pt-12 pb-8">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="min-h-[115px] overflow-hidden rounded-md bg-gray-800 pb-8">
-                
+    <div class="py-12">
+        <div class="max-w-77xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg ">
+               <livewire:mostrar-vacante
+                  :vacante="$vacante"
+               />
             </div>
         </div>
     </div>
