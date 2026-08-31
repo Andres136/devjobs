@@ -26,14 +26,21 @@ class Vacante extends Model
     ];
 
     //Relacion 1 a 1 inversa
-    public function salario()
-    {
-        return $this->belongsTo(Salario::class);
-    }
+  
 
     //Relacion 1 a 1 inversa
     public function categoria()
     {
         return $this->belongsTo(Categoria::class);
+    }
+
+      public function salario()
+    {
+        return $this->belongsTo(Salario::class);
+    }
+
+    public function candidatos()
+    {
+        return $this->hasMany(Candidato::class);
     }
 }
