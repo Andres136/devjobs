@@ -16,7 +16,10 @@ class NotificacionController extends Controller
 
         abort_unless($usuario->rol === 2, 403);
 
-        $notificaciones = $usuario->unreadNotifications;
+        $notificaciones =  auth()->user()->unreadNotifications;
+          
+        //limpiar notificaciones 
+        auth()->user()->unreadNotifications->markAsRead();
 
         return view('notificaciones.index', [
             'notificaciones' => $notificaciones

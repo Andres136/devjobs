@@ -5,12 +5,13 @@
             <div class="flex">
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
-                    <a href="{{ route('vacantes.index') }}">
+                    <a href="{{ route('home') }}">
                         <x-application-logo class="block h-9 w-auto fill-current text-gray-800 dark:text-gray-200" />
                     </a>
                 </div>
                  
-              @auth  
+              @auth 
+                @can('create', App\Models\Vacante::class) 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                     <x-nav-link :href="route('vacantes.index')" :active="request()->routeIs('vacantes.index')">
@@ -21,20 +22,23 @@
                         {{ __('Crear vacante') }}
                     </x-nav-link>
 
-                    @if (Auth::user()->rol === 2)
-                        <x-nav-link :href="route('notificaciones.index')" :active="request()->routeIs('notificaciones.index')">
-                            {{ __('Notificaciones') }}
-                        </x-nav-link>
-                    @endif
+                   
                 </div>
+                @endcan
+                @endauth
             </div>
-            @endauth
+            
            
 
             <!-- Settings Dropdown -->
             <div class="hidden sm:flex sm:items-center sm:ms-6">
                 @auth
-                    
+                @if(auth()->user()->rol === 2)
+                   <a class="mr-2  bg-indigo-600 hover:bg-indigo-800 rounded-full flex flex-col justify-center items-center tex-sm font-extrabold
+                    text-white" href="{{ route('notificaciones') }}" >
+                    {{  Auth::user()->unreadNotifications->count() }}
+                   </a>
+               @endif
               
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
@@ -103,7 +107,7 @@
                 {{ __('Crear vacante') }}
             </x-responsive-nav-link>
             @if (Auth::user()->rol === 2)
-                <x-responsive-nav-link :href="route('notificaciones.index')" :active="request()->routeIs('notificaciones.index')">
+                <x-responsive-nav-link :href="route('notificaciones')" :active="request()->routeIs('notificaciones.index')">
                     {{ __('Notificaciones') }}
                 </x-responsive-nav-link>
             @endif
@@ -126,6 +130,17 @@
                                         this.closest('form').submit();">
                         {{ __('Cerrar sesión') }}
                     </x-responsive-nav-link>
+
+                     @if(auth()->user()->rol === 2)
+                     <div class="flex gap-2 items-center p-3">
+                   <a class="w-7 h-7  bg-indigo-600 hover:bg-indigo-800 rounded-full flex flex-col justify-center items-center tex-sm font-extrabold
+                    text-white" href="{{ route('notificaciones') }}" >
+                    {{  Auth::user()->unreadNotifications->count() }}
+                   </a>
+                  <p class=" text-base  font-medium text-gray-600">             </p>
+                </div>
+                     
+               @endif
                 </form>
             </div>
         </div>
