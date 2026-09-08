@@ -37,10 +37,10 @@ class NuevoCandidato extends Notification
     /**
      * Get the mail representation of the notification.
      */
-    public function toMail(object $notifiable): MailMessage
+    public function toMail( $notifiable): MailMessage
     {
 
-       $url = url('/candidatos/'. $this->id_vacante);
+       $url = url('/notificaciones/');
 
         return (new MailMessage)
             ->line('Has recibido un nuevo candidato en tu vacante.')
@@ -56,7 +56,7 @@ class NuevoCandidato extends Notification
 
      return [
         'id_vacante' => $this->id_vacante,
-        'nombre_vacantes'=>$this->nombre_vacante,
+        'nombre_vacante'=>$this->nombre_vacante,
         'usuario_id' => $this->usuario_id
      ];
     }

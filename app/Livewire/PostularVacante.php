@@ -38,7 +38,7 @@ class PostularVacante extends Component
         ]);
 
         // Crear notificacion y enviar l email
-        $this->vacante->reclutador->notify(new NuevoCandidato($this->vacante->id, $this->vacante->titulo,auth()->id()));
+        $this->vacante->reclutador->notify(new NuevoCandidato($this->vacante->id, $this->vacante->titulo,auth()->user()->id));
 
         // Mostrar el usuario un mensaje de ok
         session()->flash('mensaje', ' s envio correctamente tu informacion, mucha suerte');

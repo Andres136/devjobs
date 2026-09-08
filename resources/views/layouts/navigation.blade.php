@@ -20,6 +20,12 @@
                     <x-nav-link :href="route('vacantes.create')" :active="request()->routeIs('vacantes.create')">
                         {{ __('Crear vacante') }}
                     </x-nav-link>
+
+                    @if (Auth::user()->rol === 2)
+                        <x-nav-link :href="route('notificaciones.index')" :active="request()->routeIs('notificaciones.index')">
+                            {{ __('Notificaciones') }}
+                        </x-nav-link>
+                    @endif
                 </div>
             </div>
             @endauth
@@ -96,6 +102,11 @@
             <x-responsive-nav-link :href="route('vacantes.create')" :active="request()->routeIs('vacantes.create')">
                 {{ __('Crear vacante') }}
             </x-responsive-nav-link>
+            @if (Auth::user()->rol === 2)
+                <x-responsive-nav-link :href="route('notificaciones.index')" :active="request()->routeIs('notificaciones.index')">
+                    {{ __('Notificaciones') }}
+                </x-responsive-nav-link>
+            @endif
         </div>
 
         <!-- Responsive Settings Options -->
