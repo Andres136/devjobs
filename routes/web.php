@@ -15,6 +15,9 @@ Route::get('/vacantes/create', [VacanteController::class, 'create'])->middleware
 Route::get('/vacantes/{vacante}/edit', [VacanteController::class, 'edit'])->middleware(['auth', 'verified'])->name('vacantes.edit');
 Route::get('/vacantes/{vacante}', [VacanteController::class, 'show'])->name('vacantes.show');
 Route::get('/candidatos/{vacante}', [CandidatosController::class, 'index'])->name('candidatos.index');
+Route::get('/candidatos/cv/{candidato}', [CandidatosController::class, 'show'])
+    ->middleware(['auth', 'verified', 'rol.reclutador'])
+    ->name('candidatos.cv');
 // Notificaciones
 Route::get('/notificaciones', NotificacionController::class)->middleware(['auth', 'verified','rol.reclutador'])->name('notificaciones');
 require __DIR__.'/auth.php';
