@@ -24,7 +24,7 @@
                             </p>
                             <p><span class="font-bold">{{ $notificacion->created_at->diffForHumans() }}</span></p>
                         </div>
-                        <a href="{{ route('candidatos.index', $notificaciones->data['vacante_id']) }}" class="ml-4 shrink-0 rounded-lg bg-indigo-500 p-3 text-sm font-bold uppercase text-white">
+                        <a href="{{ route('candidatos.index', $notificaciones->data['vacante_id']) }}" class=" bg-indigo-500 p-3 text-sm uppercase font-bold text-white rounded-lg">
                             Ver Candidatos</a>
                     </div>
                 @empty
